@@ -1,204 +1,14 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { InteractionManager } from 'three.interactive';
-
-import starsTexture from "../img/stars.jpg";
-import sunTexture from "../img/sun.jpg";
-import mercuryTexture from "../img/mercury.jpg";
-import venusTexture from "../img/venus.jpg";
-import earthTexture from "../img/earth.jpg";
-import marsTexture from "../img/mars.jpg";
-import jupiterTexture from "../img/jupiter.jpg";
-import saturnTexture from "../img/saturn.jpg";
-import saturnRingTexture from "../img/saturn ring.png";
-import uranusTexture from "../img/uranus.jpg";
-import uranusRingTexture from "../img/uranus ring.png";
-import neptuneTexture from "../img/neptune.jpg";
-import plutoTexture from "../img/pluto.jpg";
-import circlePng from "../img/circle.png";
+import { renderer, interactionManager } from "./inicio";
+import { animateStar } from "./estrelas/estrelas";
+import { scene, camera } from "./inicio";
+import { sun } from "./sol/sol";
+import { mars } from "./marte/marte";
 
 
-// Cria a cena, seta a camera, Renderiza, e textura
-const scene = new THREE.Scene();
-const textureLoader = new THREE.TextureLoader();
-const camera = new THREE.PerspectiveCamera(
-  45,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-const interactionManager = new InteractionManager(
-  renderer,
-  camera,
-  renderer.domElement
-)
-
-const orbit = new OrbitControls(camera, renderer.domElement);
-
-
-let stars, starGeo;
-
-starGeo = new THREE.BufferGeometry();
-const starsCount = 6000;
-
-const positions = new Float32Array(starsCount * 3); // Cada estrela tem três coordenadas (x, y, z)
-const velocities = new Float32Array(starsCount);
-const accelerations = new Float32Array(starsCount);
-
-for (let i = 0; i < starsCount; i++) {
-  positions[i * 3] = (Math.random() - 0.5) * 600; // Coordenada x
-  positions[i * 3 + 1] = (Math.random() - 0.5) * 600; // Coordenada y
-  positions[i * 3 + 2] = (Math.random() - 0.5) * 600; // Coordenada z
-
-  velocities[i] = Math.random();
-  accelerations[i] = 0;
-}
-
-starGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-starGeo.setAttribute("velocity", new THREE.BufferAttribute(velocities, 1));
-starGeo.setAttribute(
-  "acceleration",
-  new THREE.BufferAttribute(accelerations, 1)
-);
-
-let sprite = new THREE.TextureLoader().load(circlePng);
-let starMaterial = new THREE.PointsMaterial({
-  color: 0xaaaaaa,
-  size: 0.7,
-  map: sprite,
-});
-
-stars = new THREE.Points(starGeo, starMaterial);
-
-scene.add(stars);
-
-camera.position.set(-90, 140, 140);
-orbit.update();
-
-const ambientLight = new THREE.AmbientLight(0x333333);
-scene.add(ambientLight);
-
-const cubeTextureLoader = new THREE.CubeTextureLoader();
-scene.background = cubeTextureLoader.load([
-  starsTexture,
-  starsTexture,
-  starsTexture,
-  starsTexture,
-  starsTexture,
-  starsTexture,
-]);
-
-const sunGeo = new THREE.SphereGeometry(16, 30, 30);
-const sunMat = new THREE.MeshBasicMaterial({
-  map: textureLoader.load(sunTexture),
-});
-const sun = new THREE.Mesh(sunGeo, sunMat);
-scene.add(sun);
-
-
-function createPlanete(size, texture, position, ring) {
-  const geo = new THREE.SphereGeometry(size, 30, 30);
-  const mat = new THREE.MeshStandardMaterial({
-    map: textureLoader.load(texture),
-  });
-  const mesh = new THREE.Mesh(geo, mat);
-  const obj = new THREE.Object3D();
-  obj.add(mesh);
-  if (ring) {
-    const ringGeo = new THREE.RingGeometry(
-      ring.innerRadius,
-      ring.outerRadius,
-      32
-    );
-    const ringMat = new THREE.MeshBasicMaterial({
-      map: textureLoader.load(ring.texture),
-      side: THREE.DoubleSide,
-    });
-    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-    obj.add(ringMesh);
-    ringMesh.position.x = position;
-    ringMesh.rotation.x = -0.5 * Math.PI;
-  }
-  scene.add(obj);
-  mesh.position.x = position;
-  return { mesh, obj };
-}
-
-const mercury = createPlanete(3.2, mercuryTexture, 28);
-const venus = createPlanete(5.8, venusTexture, 44);
-const earth = createPlanete(6, earthTexture, 62);
-const mars = createPlanete(4, marsTexture, 78);
-const jupiter = createPlanete(12, jupiterTexture, 100);
-const saturn = createPlanete(10, saturnTexture, 138, {
-  innerRadius: 10,
-  outerRadius: 20,
-  texture: saturnRingTexture,
-});
-const uranus = createPlanete(7, uranusTexture, 176, {
-  innerRadius: 7,
-  outerRadius: 12,
-  texture: uranusRingTexture,
-});
-const neptune = createPlanete(7, neptuneTexture, 200);
-const pluto = createPlanete(2.8, plutoTexture, 216);
-
-const pointLight = new THREE.PointLight(0xffffff, 2, 300);
-scene.add(pointLight);
 
 function animate() {
-  //Self-rotation
-  sun.rotateY(0.004);
-  mercury.mesh.rotateY(0.004);
-  venus.mesh.rotateY(0.002);
-  earth.mesh.rotateY(0.02);
-  mars.mesh.rotateY(0.018);
-  jupiter.mesh.rotateY(0.04);
-  saturn.mesh.rotateY(0.038);
-  uranus.mesh.rotateY(0.03);
-  neptune.mesh.rotateY(0.032);
-  pluto.mesh.rotateY(0.008);
-
-  //Around-sun-rotation
-  mercury.obj.rotateY(0.04);
-  venus.obj.rotateY(0.015);
-  earth.obj.rotateY(0.01);
-  mars.obj.rotateY(0.008);
-  jupiter.obj.rotateY(0.002);
-  saturn.obj.rotateY(0.0009);
-  uranus.obj.rotateY(0.0004);
-  neptune.obj.rotateY(0.0001);
-  pluto.obj.rotateY(0.00007);
-
   renderer.render(scene, camera);
-}
-
-function animateStar() {
-  const positions = starGeo.getAttribute("position");
-  const velocities = starGeo.getAttribute("velocity");
-  const accelerations = starGeo.getAttribute("acceleration");
-
-  positions.set(positions.array);
-
-  for (let i = 0; i < positions.count; i++) {
-    velocities.array[i] += accelerations.array[i];
-    positions.array[i * 3 + 1] -= velocities.array[i];
-
-    if (positions.array[i * 3 + 1] < -200) {
-      positions.array[i * 3 + 1] = 200;
-      velocities.array[i] = 0;
-    }
-  }
-
-  positions.needsUpdate = true;
-
-  stars.updateMatrix();
-
-  renderer.render(scene, camera);
-  requestAnimationFrame(animateStar);
 }
 
 renderer.setAnimationLoop(animate);
@@ -212,8 +22,11 @@ window.addEventListener("resize", function () {
 
 
 interactionManager.add(sun);
-sun.addEventListener('click', (event) => {
-  window.location.href ='teste.html'
-})
+interactionManager.add(mars);
+// sun.addEventListener('click', (event) => {
+//   window.location.href ='teste.html'
+// })
 
 interactionManager.update();
+
+export { THREE };
