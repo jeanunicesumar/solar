@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { InteractionManager } from 'three.interactive';
 
 import starsTexture from "../img/stars.jpg";
 import sunTexture from "../img/sun.jpg";
@@ -16,6 +17,7 @@ import neptuneTexture from "../img/neptune.jpg";
 import plutoTexture from "../img/pluto.jpg";
 import circlePng from "../img/circle.png";
 
+
 // Cria a cena, seta a camera, Renderiza, e textura
 const scene = new THREE.Scene();
 const textureLoader = new THREE.TextureLoader();
@@ -29,10 +31,18 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+const interactionManager = new InteractionManager(
+  renderer,
+  camera,
+  renderer.domElement
+)
+
 const orbit = new OrbitControls(camera, renderer.domElement);
+
+
 let stars, starGeo;
 
-starGeo = new THREE.starGeo();
+starGeo = new THREE.BufferGeometry();
 const starsCount = 6000;
 
 const positions = new Float32Array(starsCount * 3); // Cada estrela tem três coordenadas (x, y, z)
@@ -88,6 +98,7 @@ const sunMat = new THREE.MeshBasicMaterial({
 });
 const sun = new THREE.Mesh(sunGeo, sunMat);
 scene.add(sun);
+
 
 function createPlanete(size, texture, position, ring) {
   const geo = new THREE.SphereGeometry(size, 30, 30);
@@ -198,3 +209,11 @@ window.addEventListener("resize", function () {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+
+interactionManager.add(sun);
+sun.addEventListener('click', (event) => {
+  window.location.href ='teste.html'
+})
+
+interactionManager.update();
