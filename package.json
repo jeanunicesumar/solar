@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "three": "^0.133.0"
+    "three": "^0.133.0",
+    "three.interactive": "^1.7.0",
+    "threex.domevents": "^1.0.1"
   },
   "devDependencies": {
     "@parcel/transformer-image": "^2.0.0-rc.0"
